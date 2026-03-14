@@ -170,7 +170,9 @@ class MemoriesCacheService {
         if (seenTimeKey == null) {
           seenTimeKey =
               await OfflineFilesDB.instance.getOrCreateLocalIntId(localId);
+          if (seenTimeKey != null) {
           _localIdToIntIdCache[localId] = seenTimeKey;
+        }
         }
       }
     }

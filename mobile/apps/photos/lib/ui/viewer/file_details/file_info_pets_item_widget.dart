@@ -59,6 +59,10 @@ class _PetsItemWidgetState extends State<PetsItemWidget> {
       }
 
       final mlDataDB = isOffline ? MLDataDB.offlineInstance : MLDataDB.instance;
+      if (fileKey == null) {
+        if (mounted) setState(() => _isLoading = false);
+        return;
+      }
       final dbPetFaces = await mlDataDB.getPetFacesForFileID(fileKey);
       if (dbPetFaces == null || dbPetFaces.isEmpty) {
         if (mounted) setState(() => _isLoading = false);

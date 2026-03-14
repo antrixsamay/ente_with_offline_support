@@ -487,6 +487,14 @@ class _FacesItemWidgetState extends State<FacesItemWidget> {
         : await PersonService.instance.getPersonsMap();
 
     final mlDataDB = isOffline ? MLDataDB.offlineInstance : MLDataDB.instance;
+    if (fileKey == null) {
+      return _FaceDataResult(
+        defaultFaces: [],
+        remainingFaces: [],
+        manualPersons: const [],
+        errorReason: NoFacesReason.fileNotUploaded,
+      );
+    }
     final faces = await mlDataDB.getFacesForGivenFileID(fileKey);
 
     if (faces == null) {

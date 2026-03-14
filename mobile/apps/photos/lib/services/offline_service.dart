@@ -48,7 +48,7 @@ class OfflineService {
         thumbnailPath: offlineThumbnailPath,
         filename: file.title ?? '',
         size: file.fileSize ?? 0,
-        creationTime: file.creationTime,
+        creationTime: file.creationTime ?? 0,
       );
       await _offlineFilesDB.insert(offlineFile);
       _logger.info("Offline file metadata stored in DB");
