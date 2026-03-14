@@ -1,21 +1,60 @@
-import "package:logging/logging.dart";
-import "package:path/path.dart" show join;
-import "package:path_provider/path_provider.dart";
-import "package:photos/db/common/base.dart";
-import "package:photos/db/ml/schema.dart";
-import "package:sqlite_async/sqlite_async.dart";
+import 'package:logging/logging.dart';
+import 'package:path/path.dart' show join;
+import 'package:path_provider/path_provider.dart';
+import 'package:photos/db/common/base.dart';
+import 'package:photos/models/file/file.dart';
+import 'package:sqlite_async/sqlite_async.dart';
+
+class OfflineFile {
+  final int id;
+  final String path;
+  final String thumbnailPath;
+  final String filename;
+  final int size;
+  final int creationTime;
+
+  OfflineFile({
+    required this.id,
+    required this.path,
+    required this.thumbnailPath,
+    required this.filename,
+    required this.size,
+    required this.creationTime,
+  });
+
+  factory OfflineFile.fromMap(Map<String, dynamic> map) {
+    return OfflineFile(
+      id: map['id'] as int,
+      path: map['path'] as String,
+      thumbnailPath: map['thumbnail_path'] as String,
+      filename: map['filename'] as String,
+      size: map['size'] as int,
+      creationTime: map['creation_time'] as int,
+    );
+  }
+}
 
 class OfflineFilesDB with SqlDbBase {
   static final Logger _logger = Logger("OfflineFilesDB");
 
-  static const _databaseName = "ente.offline_files.db";
+  static const _databaseName = "ente_offline_files.db";
+  static const _tableName = "offline_files";
 
   OfflineFilesDB._privateConstructor();
 
   static final OfflineFilesDB instance = OfflineFilesDB._privateConstructor();
 
   static const List<String> _migrationScripts = [
-    createOfflineFileKeyMapTable,
+    '''
+    CREATE TABLE IF NOT EXISTS $_tableName (
+      id INTEGER PRIMARY KEY,
+      path TEXT NOT NULL,
+      thumbnail_path TEXT NOT NULL,
+      filename TEXT NOT NULL,
+      size INTEGER NOT NULL,
+      creation_time INTEGER NOT NULL
+    )
+    ''',
   ];
 
   Future<SqliteDatabase>? _sqliteAsyncDBFuture;
@@ -36,91 +75,56 @@ class OfflineFilesDB with SqlDbBase {
     return asyncDBConnection;
   }
 
-  Future<int> getOrCreateLocalIntId(String localId) async {
+  Future<void> insert(OfflineFile file) async {
     final db = await asyncDB;
-    final existing = await db.getAll(
-      'SELECT $offlineFileKeyIntIdColumn FROM $offlineFileKeyMapTable WHERE $offlineFileKeyLocalIdColumn = ?',
-      [localId],
+    await db.insert(
+      _tableName,
+      {
+        'id': file.id,
+        'path': file.path,
+        'thumbnail_path': file.thumbnailPath,
+        'filename': file.filename,
+        'size': file.size,
+        'creation_time': file.creationTime,
+      },
     );
-    if (existing.isNotEmpty) {
-      return existing.first[offlineFileKeyIntIdColumn] as int;
-    }
-    await db.execute(
-      'INSERT INTO $offlineFileKeyMapTable ($offlineFileKeyLocalIdColumn) VALUES (?)',
-      [localId],
-    );
-    final inserted = await db.getAll(
-      'SELECT $offlineFileKeyIntIdColumn FROM $offlineFileKeyMapTable WHERE $offlineFileKeyLocalIdColumn = ?',
-      [localId],
-    );
-    return inserted.first[offlineFileKeyIntIdColumn] as int;
   }
 
-  Future<String?> getLocalIdForIntId(int localIntId) async {
+  Future<OfflineFile?> getFile(int id) async {
     final db = await asyncDB;
-    final result = await db.getAll(
-      'SELECT $offlineFileKeyLocalIdColumn FROM $offlineFileKeyMapTable WHERE $offlineFileKeyIntIdColumn = ?',
-      [localIntId],
+    final results = await db.query(
+      _tableName,
+      where: 'id = ?',
+      whereArgs: [id],
     );
-    if (result.isEmpty) return null;
-    return result.first[offlineFileKeyLocalIdColumn] as String?;
+    if (results.isEmpty) {
+      return null;
+    }
+    return OfflineFile.fromMap(results.first);
   }
 
-  Future<Map<int, String>> getLocalIdsForIntIds(
-    Iterable<int> localIntIds,
-  ) async {
-    final ids = localIntIds.toList();
-    if (ids.isEmpty) return {};
+  Future<List<OfflineFile>> getAllFiles() async {
     final db = await asyncDB;
-    final inParam = List.filled(ids.length, '?').join(',');
-    final result = await db.getAll(
-      'SELECT $offlineFileKeyIntIdColumn, $offlineFileKeyLocalIdColumn FROM $offlineFileKeyMapTable WHERE $offlineFileKeyIntIdColumn IN ($inParam)',
-      ids,
-    );
-    final mapping = <int, String>{};
-    for (final row in result) {
-      mapping[row[offlineFileKeyIntIdColumn] as int] =
-          row[offlineFileKeyLocalIdColumn] as String;
-    }
-    return mapping;
+    final results = await db.query(_tableName);
+    return results.map((map) => OfflineFile.fromMap(map)).toList();
   }
 
-  Future<Map<String, int>> getLocalIntIdsForLocalIds(
-    Iterable<String> localIds,
-  ) async {
-    final ids = localIds.toList();
-    if (ids.isEmpty) return {};
+  Future<bool> isOffline(int id) async {
     final db = await asyncDB;
-    final inParam = List.filled(ids.length, '?').join(',');
-    final result = await db.getAll(
-      'SELECT $offlineFileKeyLocalIdColumn, $offlineFileKeyIntIdColumn FROM $offlineFileKeyMapTable WHERE $offlineFileKeyLocalIdColumn IN ($inParam)',
-      ids,
+    final results = await db.query(
+      _tableName,
+      where: 'id = ?',
+      whereArgs: [id],
     );
-    final mapping = <String, int>{};
-    for (final row in result) {
-      mapping[row[offlineFileKeyLocalIdColumn] as String] =
-          row[offlineFileKeyIntIdColumn] as int;
-    }
-    return mapping;
+    return results.isNotEmpty;
   }
 
-  Future<Map<String, int>> ensureLocalIntIds(
-    Iterable<String> localIds,
-  ) async {
-    final ids = localIds.toSet().toList();
-    if (ids.isEmpty) return {};
-    final existing = await getLocalIntIdsForLocalIds(ids);
-    final missing = ids.where((id) => !existing.containsKey(id)).toList();
-    if (missing.isNotEmpty) {
-      final db = await asyncDB;
-      final inputs = missing.map((id) => [id]).toList();
-      await db.executeBatch(
-        'INSERT OR IGNORE INTO $offlineFileKeyMapTable ($offlineFileKeyLocalIdColumn) VALUES (?)',
-        inputs,
-      );
-      final inserted = await getLocalIntIdsForLocalIds(missing);
-      existing.addAll(inserted);
-    }
-    return existing;
+  Future<void> delete(int id) async {
+    final db = await asyncDB;
+    await db.delete(
+      _tableName,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 }

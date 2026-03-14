@@ -199,6 +199,20 @@ class _HomeBottomNavigationBarState extends State<HomeBottomNavigationBar> {
                             // of occasional missing events
                           },
                         ),
+                        GButton(
+                          margin: const EdgeInsets.fromLTRB(10, 6, 8, 6),
+                          icon: Icons.cloud_off_outlined,
+                          iconColor: enteColorScheme.tabIcon,
+                          iconActiveColor: strokeBaseLight,
+                          text: '',
+                          onPressed: () {
+                            _onTabChange(
+                              4,
+                              mode: "OnPressed",
+                            ); // To take care
+                            // of occasional missing events
+                          },
+                        ),
                       ],
                       selectedIndex: currentTabIndex,
                       onTabChange: _onTabChange,

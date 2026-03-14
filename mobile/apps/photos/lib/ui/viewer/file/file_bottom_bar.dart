@@ -25,10 +25,12 @@ import "package:photos/ui/notification/toast.dart";
 import "package:photos/ui/social/comments_screen.dart";
 import "package:photos/ui/social/like_collection_selector_sheet.dart";
 import "package:photos/ui/social/likes_bottom_sheet.dart";
+import "package:photos/db/offline_files_db.dart";
 import "package:photos/ui/viewer/actions/suggest_delete_sheet.dart";
 import "package:photos/utils/delete_file_util.dart";
 import "package:photos/utils/panorama_util.dart";
 import "package:photos/utils/share_util.dart";
+import "package:photos/services/offline_service.dart";
 
 final _logger = Logger("FileBottomBar");
 
@@ -59,6 +61,7 @@ class FileBottomBarState extends State<FileBottomBar> {
   int? lastFileGenID;
   bool _hasLiked = false;
   int _commentCount = 0;
+  bool _isOffline = false;
 
   @override
   void initState() {
@@ -70,6 +73,19 @@ class FileBottomBarState extends State<FileBottomBar> {
         isGuestView = event.isGuestView;
       });
     });
+    _checkIfOffline();
+  }
+
+  Future<void> _checkIfOffline() async {
+    if (widget.file.uploadedFileID != null) {
+      final isOffline =
+          await OfflineFilesDB.instance.isOffline(widget.file.uploadedFileID!);
+      if (mounted) {
+        setState(() {
+          _isOffline = isOffline;
+        });
+      }
+    }
   }
 
   @override
@@ -77,6 +93,7 @@ class FileBottomBarState extends State<FileBottomBar> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.file.uploadedFileID != widget.file.uploadedFileID) {
       _updateSocialState();
+      _checkIfOffline();
     }
   }
 
@@ -146,6 +163,20 @@ class FileBottomBarState extends State<FileBottomBar> {
     if (mounted) {
       setState(() {});
     }
+  }
+
+  Future<void> _toggleOffline() async {
+    if (widget.file.uploadedFileID == null) return;
+
+    if (_isOffline) {
+      await OfflineService.instance.unmarkAsOffline(widget.file.uploadedFileID!);
+      showShortToast(context, "Removed from offline");
+    } else {
+      await OfflineService.instance.markAsOffline(widget.file);
+      showShortToast(context, "Marked for offline viewing");
+    }
+
+    _checkIfOffline();
   }
 
   Widget _getBottomBar() {
@@ -251,6 +282,23 @@ class FileBottomBarState extends State<FileBottomBar> {
                     actionType: CollectionActionType.addFiles,
                   );
                 },
+              ),
+            ),
+          ),
+        );
+      }
+      if (widget.file.isUploaded && !widget.isLocalOnlyContext) {
+        children.add(
+          Tooltip(
+            message: "Mark for offline viewing",
+            child: Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: IconButton(
+                icon: Icon(
+                  _isOffline ? Icons.favorite : Icons.favorite_border,
+                  color: _isOffline ? Colors.red : Colors.white,
+                ),
+                onPressed: _toggleOffline,
               ),
             ),
           ),

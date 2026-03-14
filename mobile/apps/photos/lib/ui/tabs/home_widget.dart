@@ -83,6 +83,7 @@ import "package:photos/ui/viewer/file/detail_page.dart";
 import "package:photos/ui/viewer/gallery/collection_page.dart";
 import "package:photos/ui/viewer/gallery/shared_public_collection_page.dart";
 import "package:photos/ui/viewer/search_tab/search_tab.dart";
+import "package:photos/ui/offline/offline_tab.dart";
 import "package:photos/utils/collection_util.dart";
 import "package:photos/utils/dialog_util.dart";
 import "package:receive_sharing_intent/receive_sharing_intent.dart";
@@ -102,6 +103,7 @@ class HomeWidget extends StatefulWidget {
 class _HomeWidgetState extends State<HomeWidget> {
   static const _sharedCollectionTab = SharedCollectionsTab();
   static const _searchTab = SearchTab();
+  static const _offlineTab = OfflineTab();
 
   final _logger = Logger("HomeWidgetState");
   final _selectedAlbums = SelectedAlbums();
@@ -950,6 +952,7 @@ class _HomeWidgetState extends State<HomeWidget> {
                     UserCollectionsTab(selectedAlbums: _selectedAlbums),
                     _sharedCollectionTab,
                     _searchTab,
+                    _offlineTab,
                   ],
                 );
               },
