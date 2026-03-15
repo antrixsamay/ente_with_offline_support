@@ -101,7 +101,7 @@ class OfflineFilesDB with SqlDbBase {
 
   Future<OfflineFile?> getFile(int id) async {
     final db = await asyncDB;
-    final results = await db.query(
+    final results = await db.select(
       'SELECT * FROM $_tableName WHERE id = ?',
       [id],
     );
@@ -113,13 +113,13 @@ class OfflineFilesDB with SqlDbBase {
 
   Future<List<OfflineFile>> getAllFiles() async {
     final db = await asyncDB;
-    final results = await db.query('SELECT * FROM $_tableName');
+    final results = await db.select('SELECT * FROM $_tableName');
     return results.map((map) => OfflineFile.fromMap(map)).toList();
   }
 
   Future<bool> isOffline(int id) async {
     final db = await asyncDB;
-    final results = await db.query(
+    final results = await db.select(
       'SELECT id FROM $_tableName WHERE id = ?',
       [id],
     );
@@ -137,7 +137,7 @@ class OfflineFilesDB with SqlDbBase {
     if (localIds.isEmpty) {
       return {};
     }
-    final results = await db.query(
+    final results = await db.select(
         'SELECT local_string_id, local_int_id FROM $_localIdTableName WHERE local_string_id IN (${localIds.map((_) => '?').join(',')})',
         localIds);
     return {
@@ -150,7 +150,7 @@ class OfflineFilesDB with SqlDbBase {
     if (localIntIds.isEmpty) {
       return {};
     }
-    final results = await db.query(
+    final results = await db.select(
         'SELECT local_int_id, local_string_id FROM $_localIdTableName WHERE local_int_id IN (${localIntIds.map((_) => '?').join(',')})',
         localIntIds);
     return {
