@@ -32,6 +32,7 @@ import "package:photos/services/machine_learning/compute_controller.dart";
 import "package:photos/services/machine_learning/face_ml/face_recognition_service.dart";
 import "package:photos/services/magic_cache_service.dart";
 import "package:photos/services/memories_cache_service.dart";
+import "package:photos/services/offline_service.dart";
 import "package:photos/services/permission/service.dart";
 import "package:photos/services/rituals/rituals_service.dart";
 import "package:photos/services/smart_albums_service.dart";
@@ -41,6 +42,7 @@ import "package:photos/services/sync/trash_sync_service.dart";
 import "package:photos/services/text_embeddings_cache_service.dart";
 import "package:photos/services/update_service.dart";
 import "package:photos/services/wrapped/wrapped_cache_service.dart";
+
 import "package:photos/services/wrapped/wrapped_service.dart";
 import "package:photos/utils/local_settings.dart";
 import "package:shared_preferences/shared_preferences.dart";
@@ -67,6 +69,12 @@ class ServiceLocator {
     this.nonEnteDio = nonEnteDio;
     this.packageInfo = packageInfo;
   }
+}
+
+OfflineService? _offlineService;
+OfflineService get offlineService {
+  _offlineService ??= OfflineService.instance;
+  return _offlineService!;
 }
 
 FlagService? _flagService;

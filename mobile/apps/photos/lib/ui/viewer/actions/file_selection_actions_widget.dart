@@ -79,6 +79,8 @@ class _FileSelectionActionsWidgetState
   late FilesSplit split;
   late CollectionActions collectionActions;
   late bool isCollectionOwner;
+  bool _areAllFilesOffline = false;
+  bool _areSomeFilesOffline = false;
   // _cachedCollectionForSharedLink is primarily used to avoid creating duplicate
   // links if user keeps on creating Create link button after selecting
   // few files. This link is reset on any selection changed;
@@ -119,6 +121,24 @@ class _FileSelectionActionsWidgetState
       _cachedCollectionForSharedLink = null;
     }
     split = FilesSplit.split(widget.selectedFiles.files, currentUserID);
+    offlineService
+        .areAllFilesOffline(widget.selectedFiles.files.toList())
+        .then((value) {
+      if (mounted) {
+        setState(() {
+          _areAllFilesOffline = value;
+        });
+      }
+    });
+    offlineService
+        .areSomeFilesOffline(widget.selectedFiles.files.toList())
+        .then((value) {
+      if (mounted) {
+        setState(() {
+          _areSomeFilesOffline = value;
+        });
+      }
+    });
     if (mounted) {
       setState(() => {});
     }
@@ -225,6 +245,19 @@ class _FileSelectionActionsWidgetState
             ),
           );
         }
+      }
+      if (widget.type.showOfflineOption() && anyUploadedFiles) {
+        items.add(
+          SelectionActionButton(
+            icon: _areAllFilesOffline
+                ? Icons.cloud_off
+                : Icons.cloud_download_outlined,
+            labelText: _areAllFilesOffline
+                ? AppLocalizations.of(context).removeFromOffline
+                : AppLocalizations.of(context).makeAvailableOffline,
+            onTap: _onOfflineClick,
+          ),
+        );
       }
       if (widget.type == GalleryType.peopleTag && widget.person != null) {
         items.add(
@@ -633,6 +666,24 @@ class _FileSelectionActionsWidgetState
 
   Future<void> _onDeleteClick() async {
     return showDeleteSheet(context, widget.selectedFiles, split);
+  }
+
+  Future<void> _onOfflineClick() async {
+    final files = widget.selectedFiles.files.toList();
+    if (_areAllFilesOffline) {
+      for (final file in files) {
+        if (file.uploadedFileID != null) {
+          await offlineService.unmarkAsOffline(file.uploadedFileID!);
+        }
+      }
+    } else {
+      for (final file in files) {
+        if (file.uploadedFileID != null) {
+          await offlineService.markAsOffline(file);
+        }
+      }
+    }
+    widget.selectedFiles.clearAll();
   }
 
   Future<void> _rejectDeleteSuggestions() async {

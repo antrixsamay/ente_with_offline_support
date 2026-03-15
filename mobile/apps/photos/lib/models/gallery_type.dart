@@ -308,6 +308,18 @@ extension GalleyTypeExtension on GalleryType {
     }
   }
 
+  bool showOfflineOption() {
+    switch (this) {
+      case GalleryType.trash:
+      case GalleryType.localFolder:
+      case GalleryType.sharedPublicCollection:
+      case GalleryType.cleanupHiddenFromDevice:
+        return false;
+      default:
+        return true;
+    }
+  }
+
   bool showRestoreOption() {
     return this == GalleryType.trash;
   }

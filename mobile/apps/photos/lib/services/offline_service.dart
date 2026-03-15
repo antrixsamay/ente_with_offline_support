@@ -18,6 +18,32 @@ class OfflineService {
 
   static final OfflineService instance = OfflineService._privateConstructor();
 
+  Future<bool> isOffline(int id) async {
+    return _offlineFilesDB.getFile(id).then((file) => file != null);
+  }
+
+  Future<List<OfflineFile>> getAllOfflineFiles() async {
+    return _offlineFilesDB.getAllFiles();
+  }
+
+  Future<bool> areAllFilesOffline(List<EnteFile> files) async {
+    for (final file in files) {
+      if (file.uploadedFileID == null || !await isOffline(file.uploadedFileID!)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Future<bool> areSomeFilesOffline(List<EnteFile> files) async {
+    for (final file in files) {
+      if (file.uploadedFileID != null && await isOffline(file.uploadedFileID!)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   Future<void> markAsOffline(EnteFile file) async {
     _logger.info("Marking file as offline: ${file.tag}");
 
