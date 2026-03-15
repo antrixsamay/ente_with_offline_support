@@ -1,4 +1,4 @@
-name: "Release (photos independent)"
+name: "MY Release (photos independent)"
 
 on:
     workflow_dispatch: # Allow manually running the action
@@ -106,7 +106,20 @@ jobs:
 
             - name: Checksum
               run: sha256sum build/app/outputs/flutter-apk/ente-${{ github.ref_name }}.apk > build/app/outputs/flutter-apk/sha256sum
+            - name: Upload Artifacts to GitHub Actions
+              uses: actions/upload-artifact@v4
+              with:
+                name: Release-Photos-Independent
+                path: |
+                  mobile/apps/photos/build/app/outputs/flutter-apk/ente-${{ github.ref_name }}.apk
+                  mobile/apps/photos/build/app/outputs/flutter-apk/sha256sum
+                retention-days: 7 # Optional: controls how long GitHub keeps the file
 
+            - name: Create a draft GitHub release
+              uses: ncipollo/release-action@v1
+              with:
+                  artifacts: "mobile/apps/photos/build/app/outputs/flutter-apk/ente-${{ github.ref_name }}.apk,mobile/apps/photos/build/app/outputs/flutter-apk/sha256sum"
+                  draft: true
             - name: Create a draft GitHub release
               uses: ncipollo/release-action@v1
               with:
