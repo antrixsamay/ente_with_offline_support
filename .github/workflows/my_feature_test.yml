@@ -1,4 +1,4 @@
-name: "Release (photos independent)"
+name: "My Release (photos independent)"
 
 on:
     workflow_dispatch: # Allow manually running the action
