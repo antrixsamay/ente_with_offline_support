@@ -266,8 +266,8 @@ class _PersonFaceWidgetState extends State<PersonFaceWidget>
           final localIntIds = allFaces
               .map((faceID) => getFileIdFromFaceId<int>(faceID))
               .toSet();
-          final localIdMap =
-              await OfflineFilesDB.instance.getLocalIdsForIntIds(localIntIds);
+          final localIdMap = await OfflineFilesDB.instance
+              .getLocalIdsForIntIds(localIntIds.toList());
           for (final faceID in allFaces) {
             final localIntId = getFileIdFromFaceId<int>(faceID);
             final localId = localIdMap[localIntId];

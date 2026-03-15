@@ -728,7 +728,8 @@ class SmartMemoriesService {
             candidateFiles
                 .map((file) => file.localID)
                 .whereType<String>()
-                .where((id) => id.isNotEmpty),
+                .where((id) => id.isNotEmpty)
+                .toList(),
           )
         : <String, int>{};
     final Set<EnteFile> allFiles = {};
@@ -922,7 +923,8 @@ class SmartMemoriesService {
             allFiles
                 .map((file) => file.localID)
                 .whereType<String>()
-                .where((id) => id.isNotEmpty),
+                .where((id) => id.isNotEmpty)
+                .toList(),
           )
         : <String, int>{};
 

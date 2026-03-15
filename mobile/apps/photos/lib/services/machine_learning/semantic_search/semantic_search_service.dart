@@ -251,7 +251,7 @@ class SemanticSearchService {
     bool showThreshold,
   ) async {
     final localIdMap = await OfflineFilesDB.instance.getLocalIdsForIntIds(
-      queryResults.map((e) => e.id),
+      queryResults.map((e) => e.id).toList(),
     );
     final allFiles = await SearchService.instance.getAllFilesForSearch();
     final ignoredCollections =

@@ -795,7 +795,7 @@ class MLService {
     if (localIdToCreation.isEmpty) return {};
     final localIdToIntId =
         await OfflineFilesDB.instance.getLocalIntIdsForLocalIds(
-      localIdToCreation.keys,
+      localIdToCreation.keys.toList(),
     );
     final map = <int, int>{};
     localIdToIntId.forEach((localId, localIntId) {

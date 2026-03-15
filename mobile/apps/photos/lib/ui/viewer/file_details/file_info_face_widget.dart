@@ -184,8 +184,8 @@ class _FileInfoFaceWidgetState extends State<FileInfoFaceWidget> {
       List<EnteFile> clusterFiles;
       if (isOfflineMode) {
         final localIntIds = fileIdsToClusterIds.keys.toSet();
-        final localIdMap =
-            await OfflineFilesDB.instance.getLocalIdsForIntIds(localIntIds);
+        final localIdMap = await OfflineFilesDB.instance
+            .getLocalIdsForIntIds(localIntIds.toList());
         final localIdToFile = <String, EnteFile>{};
         for (final file in files) {
           final localId = file.localID;

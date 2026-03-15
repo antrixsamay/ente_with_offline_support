@@ -410,7 +410,7 @@ class MagicCacheService {
         }
         if (localIntIds.isNotEmpty) {
           final localIdMap =
-              await OfflineFilesDB.instance.getLocalIdsForIntIds(localIntIds);
+              await OfflineFilesDB.instance.getLocalIdsForIntIds(localIntIds.toList());
           final localIdToIntId = <String, int>{};
           for (final entry in localIdMap.entries) {
             localIdToIntId[entry.value] = entry.key;

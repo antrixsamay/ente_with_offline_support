@@ -926,7 +926,7 @@ class SearchService {
         }
         final localIntIds = fileIdToClusterID.keys.toSet();
         final localIdMap =
-            await OfflineFilesDB.instance.getLocalIdsForIntIds(localIntIds);
+            await OfflineFilesDB.instance.getLocalIdsForIntIds(localIntIds.toList());
         final allFiles = await getAllFilesForSearch();
         final localIdToFile = <String, EnteFile>{};
         for (final file in allFiles) {

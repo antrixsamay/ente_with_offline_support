@@ -81,7 +81,7 @@ class MemoriesCacheService {
             .toSet();
         if (localIds.isEmpty) return;
         final localIdToIntId =
-            await OfflineFilesDB.instance.ensureLocalIntIds(localIds);
+            await OfflineFilesDB.instance.ensureLocalIntIds(localIds.toList());
         _localIdToIntIdCache.addAll(localIdToIntId);
         final localIntIds = localIdToIntId.values.toSet();
         for (final memory in _cachedMemories!) {
@@ -187,7 +187,9 @@ class MemoriesCacheService {
         if (localId != null && localId.isNotEmpty) {
           final localIntId = _localIdToIntIdCache[localId] ??
               await OfflineFilesDB.instance.getOrCreateLocalIntId(localId);
-          _localIdToIntIdCache[localId] = localIntId;
+          if (localIntId != null) {
+            _localIdToIntIdCache[localId] = localIntId;
+          }
           final cachedLocalIds = _cachedMemories!
               .expand((mem) => mem.memories)
               .map((mem) => mem.file.localID)
@@ -195,8 +197,8 @@ class MemoriesCacheService {
               .where((id) => id.isNotEmpty)
               .toSet();
           if (cachedLocalIds.isNotEmpty) {
-            final cacheLocalIdToIntId =
-                await OfflineFilesDB.instance.ensureLocalIntIds(cachedLocalIds);
+            final cacheLocalIdToIntId = await OfflineFilesDB.instance
+                .ensureLocalIntIds(cachedLocalIds.toList());
             _localIdToIntIdCache.addAll(cacheLocalIdToIntId);
             for (final smartMemory in _cachedMemories!) {
               for (final mem in smartMemory.memories) {
@@ -409,7 +411,7 @@ class MemoriesCacheService {
       final localIdToFile = <String, EnteFile>{};
       if (minimalLocalIntIds.isNotEmpty) {
         final localIdMap = await OfflineFilesDB.instance.getLocalIdsForIntIds(
-          minimalLocalIntIds,
+          minimalLocalIntIds.toList(),
         );
         final allFiles = await SearchService.instance.getAllFilesForSearch();
         final neededLocalIds = localIdMap.values.toSet();
@@ -624,7 +626,8 @@ class MemoriesCacheService {
       }
     }
     if (localIds.isEmpty) return {};
-    final mapping = await OfflineFilesDB.instance.ensureLocalIntIds(localIds);
+    final mapping =
+        await OfflineFilesDB.instance.ensureLocalIntIds(localIds.toList());
     _localIdToIntIdCache.addAll(mapping);
     return mapping;
   }

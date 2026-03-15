@@ -123,7 +123,8 @@ class _MagicResultScreenState extends State<MagicResultScreen> {
         .where((id) => id.isNotEmpty)
         .toSet();
     if (localIds.isEmpty) return;
-    final mapping = await OfflineFilesDB.instance.ensureLocalIntIds(localIds);
+    final mapping =
+        await OfflineFilesDB.instance.ensureLocalIntIds(localIds.toList());
     if (!mounted) return;
     setState(() {
       _localIdToIntId = mapping;
